@@ -1,0 +1,20 @@
+﻿@model EmployeeAddViewModel
+
+
+
+
+    <form asp-controller="Emloyee" asp-action="Add">
+    <label asp-for="Employee.Id" >Id:</label>   <input asp-for="Employee.Id"/> <br />
+   <label asp-for="Employee.Id" >  First Name: </label>   <input asp-for="Employee.FirstName"/> <br />
+   <label asp-for="Employee.Id" > Last Name: </label>     <input asp-for="Employee.LastName"/> <br />
+    <label asp-for="Employee.Id" >City:</label>   <select asp-for="Employee.CityId" asp-items="Model.Cities"></select> 
+    @* <input asp-for="Employee.CityId"/> *@<br /> 
+    <button type="submit">Add</button>
+    </form>
+
+    <br /> <br /> <br />
+   <employee-list count=2></employee-list>
+
+   @section MySection {
+       Some Content
+   }
