@@ -1,4 +1,5 @@
 ﻿using AspNetCoreMvc2.Introduction.Entities;
+using AspNetCoreMvc2.Introduction.Filters;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -13,8 +14,12 @@ namespace AspNetCoreMvc2.Introduction.Controllers
             return "Welcome to new AspNet Core Application";
         }
 
+
+        [HandleException(ViewName = "DivideByZeroError", ExceptionType = typeof(DivideByZeroException))]
         public ViewResult Index2()
         {
+            throw new DivideByZeroException();
+
             return View();
         }
 
