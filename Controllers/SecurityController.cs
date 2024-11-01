@@ -3,6 +3,7 @@ using AspNetCoreMvc2.Introduction.Models.Security;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace AspNetCoreMvc2.Introduction.Controllers
@@ -26,20 +27,28 @@ namespace AspNetCoreMvc2.Introduction.Controllers
         [HttpPost]
         public async Task<IActionResult> Login(LoginViewModel loginViewModel)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
+                var errors = ModelState.Values.SelectMany(v => v.Errors);
+                foreach (var error in errors)
+                {
+                    Console.WriteLine(error.ErrorMessage);
+                }
                 return View(loginViewModel);
             }
 
             var user = await _userManager.FindByNameAsync(loginViewModel.UserName);
 
-            if (user != null)
+            if (user == null)
             {
-                if (!await _userManager.IsEmailConfirmedAsync(user))
-                {
-                    ModelState.AddModelError(string.Empty, "Confirm Your Email Please");
-                    return View(loginViewModel);
-                }
+                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                return View(loginViewModel);
+            }
+
+            if (!await _userManager.IsEmailConfirmedAsync(user))
+            {
+                ModelState.AddModelError(string.Empty, "Confirm your email first.");
+                return View(loginViewModel);
             }
 
             var result = await _signInManager.PasswordSignInAsync(loginViewModel.UserName, loginViewModel.Password, false, false);
@@ -52,6 +61,7 @@ namespace AspNetCoreMvc2.Introduction.Controllers
             ModelState.AddModelError(string.Empty, "Login Failed");
             return View(loginViewModel);
         }
+
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();
@@ -71,11 +81,13 @@ namespace AspNetCoreMvc2.Introduction.Controllers
         [HttpPost]
         public async Task<IActionResult> Register(RegisterViewModel registerViewModel)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
+                Console.WriteLine("Model geçersiz.");
                 return View(registerViewModel);
             }
 
+            // Kullanıcı oluşturma işlemi
             var user = new AppIdentityUser
             {
                 UserName = registerViewModel.UserName,
@@ -83,17 +95,34 @@ namespace AspNetCoreMvc2.Introduction.Controllers
                 Age = registerViewModel.Age,
             };
 
-            var result = await _userManager.CreateAsync(user, registerViewModel.Password);
-
-            if (result.Succeeded)
+            try
             {
-                var confirmationCode = _userManager.GenerateEmailConfirmationTokenAsync(user);
-                var callBackUrl = Url.Action("ConfirmEmail", "Security", new { userId = user.Id, code = confirmationCode });
+                var result = await _userManager.CreateAsync(user, registerViewModel.Password);
 
-                //Send Email
+                if (result.Succeeded)
+                {
+                    Console.WriteLine("Kullanıcı başarıyla oluşturuldu.");
+                    var confirmationCode = _userManager.GenerateEmailConfirmationTokenAsync(user);
+                    var callBackUrl = Url.Action("ConfirmEmail", "Security", new { userId = user.Id, code = confirmationCode.Result }, protocol: Request.Scheme);
 
-                return RedirectToAction("Index", "Student");
+                    // E-posta gönderim kodu
+                    return RedirectToAction("Index", "Student");
+                }
+                else
+                {
+                    Console.WriteLine("Kullanıcı oluşturulamadı.");
+                    foreach (var error in result.Errors)
+                    {
+                        ModelState.AddModelError("", error.Description);
+                        Console.WriteLine($"Hata: {error.Description}");
+                    }
+                }
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Bir hata oluştu: {ex.Message}");
+            }
+
             return View(registerViewModel);
         }
 

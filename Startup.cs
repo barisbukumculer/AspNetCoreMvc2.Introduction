@@ -56,7 +56,7 @@ namespace AspNetCoreMvc2.Introduction
 
             services.ConfigureApplicationCookie(opts =>
             {
-                opts.LoginPath = "/Secutiry/Login";
+                opts.LoginPath = "/Security/Login";
                 opts.LogoutPath = "/Security/Logout";
                 opts.AccessDeniedPath = "/Security/AccessDenied";
                 opts.SlidingExpiration = true;
@@ -93,7 +93,7 @@ namespace AspNetCoreMvc2.Introduction
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             app.UseStaticFiles();
-            env.EnvironmentName = EnvironmentName.Production;
+            //env.EnvironmentName = EnvironmentName.Production;
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
